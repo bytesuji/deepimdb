@@ -14,12 +14,16 @@ def onehot_vectorize(sequences, dimension):
 
 
 class IMDBNetwork(object):
-    def __init__(self, num_words=10000, epochs=20, batch_size=512):
+    def __init__(self, model_type='lstm',
+                 num_words=10000, epochs=20, batch_size=512):
         self.trained = False
         self.num_words = num_words
         self.word_index = imdb.get_word_index()
         self.epochs = epochs
         self.batch_size = batch_size
+        if not model_type.lower() in ('lstm', 'dense'):
+            raise ValueError("model_type must be in ('lstm', 'dense')")
+        self.model_type = model_type.lower()
 
         (self.train_data, self.train_labels), (self.test_data, self.test_labels) =\
             imdb.load_data(num_words=self.num_words)
@@ -30,14 +34,22 @@ class IMDBNetwork(object):
         self.y_train = np.asarray(self.train_labels).astype('float32')
         self.y_test = np.asarray(self.test_labels).astype('float32')
 
-        self.model = models.Sequential([
-            layers.Dense(64, activation='relu', input_shape=(num_words,)),
-            layers.Dropout(0.5),
-            layers.Dense(16, activation='relu'),
-            layers.Dense(16, activation='relu'),
-            layers.Dropout(0.5),
-            layers.Dense(1, activation='sigmoid')
-        ])
+        if self.model_type == 'lstm':
+            self.model = models.Sequential([
+                layers.Dense(64, activation='relu', input_shape=(num_words,)),
+                layers.Dropout(0.5),
+                layers.Dense(16, activation='relu'),
+                layers.Dense(16, activation='relu'),
+                layers.Dropout(0.5),
+                layers.Dense(1, activation='sigmoid')
+            ])
+
+        else:
+            self.lstm = models.Sequential([
+                layers.Embedding(num_words, 256),
+                layers.LSTM(256, dropout=0.33, recurrent_dropout=0.2),
+                layers.Dense(1, activation='sigmoid')
+            ])
 
     def decode_imdb_review(self, review):
         reverse_word_index = dict(
