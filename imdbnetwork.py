@@ -14,13 +14,11 @@ def onehot_vectorize(sequences, dimension):
 
 
 class IMDBNetwork(object):
-    def __init__(self, model_type='lstm',
-                 num_words=10000, epochs=20, batch_size=512):
+    def __init__(self, model_type='lstm', num_words=10000):
         self.trained = False
         self.num_words = num_words
         self.word_index = imdb.get_word_index()
-        self.epochs = epochs
-        self.batch_size = batch_size
+
         if not model_type.lower() in ('lstm', 'dense'):
             raise ValueError("model_type must be in ('lstm', 'dense')")
         self.model_type = model_type.lower()
@@ -34,7 +32,7 @@ class IMDBNetwork(object):
         self.y_train = np.asarray(self.train_labels).astype('float32')
         self.y_test = np.asarray(self.test_labels).astype('float32')
 
-        if self.model_type == 'lstm':
+        if self.model_type == 'dense':
             self.model = models.Sequential([
                 layers.Dense(64, activation='relu', input_shape=(num_words,)),
                 layers.Dropout(0.5),
@@ -45,9 +43,9 @@ class IMDBNetwork(object):
             ])
 
         else:
-            self.lstm = models.Sequential([
-                layers.Embedding(num_words, 256),
-                layers.LSTM(256, dropout=0.33, recurrent_dropout=0.2),
+            self.model = models.Sequential([
+                layers.Embedding(num_words, 128),
+                layers.LSTM(128, dropout=0.33, recurrent_dropout=0.2),
                 layers.Dense(1, activation='sigmoid')
             ])
 
@@ -65,21 +63,20 @@ class IMDBNetwork(object):
         return decoded_review
 
 
-    def train(self, save=True, save_path="imdb_{}.h5"):
+    def train(self, save=True, save_path="imdb_{}.h5", epochs=5, batch_size=512):
         self.model.compile(optimizer='rmsprop',
                            loss='binary_crossentropy',
                            metrics=[metrics.binary_accuracy])
 
-        x_val = self.x_train[:10000]
-        partial_x_train = self.x_train[10000:]
-        y_val = self.y_train[:10000]
-        partial_y_train = self.y_train[10000:]
+        # x_val = self.x_train[:10000]
+        # partial_x_train = self.x_train[10000:]
+        # y_val = self.y_train[:10000]
+        # partial_y_train = self.y_train[10000:]
 
         self.model.fit(partial_x_train,
                        partial_y_train,
-                       epochs=self.epochs,
-                       batch_size=self.batch_size,
-                       validation_data=(x_val, y_val)
+                       epochs=epochs,
+                       batch_size=batch_size
         )
 
         if save:
@@ -101,8 +98,9 @@ class IMDBNetwork(object):
 
 
 def main():
-    net = IMDBNetwork(num_words=20000)
+    net = IMDBNetwork(num_words=5000)
     net.train()
+    net.model.summary()
     print(net.evaluate())
 
 
