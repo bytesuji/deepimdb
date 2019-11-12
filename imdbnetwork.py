@@ -73,8 +73,8 @@ class IMDBNetwork(object):
         # y_val = self.y_train[:10000]
         # partial_y_train = self.y_train[10000:]
 
-        self.model.fit(x_train,
-                       y_train,
+        self.model.fit(self.x_train,
+                       self.y_train,
                        epochs=epochs,
                        batch_size=batch_size
         )
