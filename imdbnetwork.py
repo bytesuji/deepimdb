@@ -46,7 +46,8 @@ class IMDBNetwork(object):
         else:
             self.model = models.Sequential([
                 layers.Embedding(num_words, 128),
-                layers.LSTM(128, dropout=0.33, recurrent_dropout=0.2),
+                layers.LSTM(256, dropout=0.2, recurrent_dropout=0.2),
+                layers.LSTM(256, dropout=0.2, recurrent_dropout=0.2),
                 layers.Dense(1, activation='sigmoid')
             ])
 
