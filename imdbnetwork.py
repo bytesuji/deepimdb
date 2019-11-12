@@ -27,9 +27,6 @@ class IMDBNetwork(object):
         (self.train_data, self.train_labels), (self.test_data, self.test_labels) =\
             imdb.load_data(num_words=self.num_words)
 
-        self.x_train = onehot_vectorize(self.train_data, self.num_words)
-        self.x_test  = onehot_vectorize(self.test_data, self.num_words)
-
         self.y_train = np.asarray(self.train_labels).astype('float32')
         self.y_test = np.asarray(self.test_labels).astype('float32')
 
@@ -43,12 +40,18 @@ class IMDBNetwork(object):
                 layers.Dense(1, activation='sigmoid')
             ])
 
+            self.x_train = onehot_vectorize(self.train_data, self.num_words)
+            self.x_test  = onehot_vectorize(self.test_data, self.num_words)
+
         else:
             self.model = models.Sequential([
                 layers.Embedding(num_words, 128),
                 layers.LSTM(128, dropout=0.33, recurrent_dropout=0.2),
                 layers.Dense(1, activation='sigmoid')
             ])
+
+            self.x_train = sequence.pad_sequences(self.train_data, maxlen=80)
+            self.x_test = sequence.pad_sequences(self.test_data, maxlen=80)
 
     def decode_imdb_review(self, review):
         reverse_word_index = dict(
@@ -74,9 +77,6 @@ class IMDBNetwork(object):
         # y_val = self.y_train[:10000]
         # partial_y_train = self.y_train[10000:]
 
-        if self.model_type == 'lstm':
-            self.x_train = sequence.pad_sequences(self.x_train, maxlen=80)
-            self.x_test = sequence.pad_sequences(self.x_test, maxlen=80)
 
         self.model.fit(self.x_train,
                        self.y_train,
