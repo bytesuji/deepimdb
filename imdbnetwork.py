@@ -5,6 +5,7 @@ from keras.datasets import imdb
 from keras import models
 from keras import layers
 from keras import metrics
+from keras.preprocessing import sequence
 
 def onehot_vectorize(sequences, dimension):
     results = np.zeros((len(sequences), dimension))
@@ -73,6 +74,10 @@ class IMDBNetwork(object):
         # y_val = self.y_train[:10000]
         # partial_y_train = self.y_train[10000:]
 
+        if self.model_type == 'lstm':
+            self.x_train = sequence.pad_sequences(self.x_train, maxlen=80)
+            self.x_test = sequence.pad_sequences(self.x_test, maxlen=80)
+
         self.model.fit(self.x_train,
                        self.y_train,
                        epochs=epochs,
@@ -99,7 +104,7 @@ class IMDBNetwork(object):
 
 def main():
     net = IMDBNetwork(num_words=5000)
-    net.train()
+    net.train(epochs=10)
     net.model.summary()
     print(net.evaluate())
 
