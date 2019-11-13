@@ -1,11 +1,15 @@
+import subprocess
 from time import time
 
 import numpy as np
+import keras as K
+
 from keras.datasets import imdb
 from keras import models
 from keras import layers
 from keras import metrics
 from keras.preprocessing import sequence
+
 
 def onehot_vectorize(sequences, dimension):
     results = np.zeros((len(sequences), dimension))
@@ -15,10 +19,15 @@ def onehot_vectorize(sequences, dimension):
 
 
 class IMDBNetwork(object):
-    def __init__(self, model_type='lstm', num_words=10000):
+    def __init__(self, model_type='lstm', num_words=10000, _gpu_count=-1):
         self.trained = False
         self.num_words = num_words
         self.word_index = imdb.get_word_index()
+        if _gpu_count == -1:
+            self._gpu_count = str(subprocess.check_output(
+                                  ["nvidia-smi", "-L"])).count('UUID')
+        else:
+            self._gpu_count = _gpu_count
 
         if not model_type.lower() in ('lstm', 'dense'):
             raise ValueError("model_type must be in ('lstm', 'dense')")
@@ -54,6 +63,9 @@ class IMDBNetwork(object):
 
             self.x_train = sequence.pad_sequences(self.train_data, maxlen=80)
             self.x_test = sequence.pad_sequences(self.test_data, maxlen=80)
+
+        if self._gpu_count > 1:
+            model = K.utils.multi_gpu_model(model, gpus=self._gpu_count)
 
     def decode_imdb_review(self, review):
         reverse_word_index = dict(
