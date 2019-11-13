@@ -65,7 +65,7 @@ class IMDBNetwork(object):
             self.x_test = sequence.pad_sequences(self.test_data, maxlen=80)
 
         if self._gpu_count > 1:
-            model = K.utils.multi_gpu_model(model, gpus=self._gpu_count)
+            model = K.utils.multi_gpu_model(self.model, gpus=self._gpu_count)
 
     def decode_imdb_review(self, review):
         reverse_word_index = dict(
