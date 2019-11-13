@@ -46,7 +46,8 @@ class IMDBNetwork(object):
         else:
             self.model = models.Sequential([
                 layers.Embedding(num_words, 256),
-                layers.LSTM(256, dropout=0.2, recurrent_dropout=0.2),
+                layers.LSTM(256, return_sequences=True,
+                            dropout=0.2, recurrent_dropout=0.2),
                 layers.LSTM(256, dropout=0.2, recurrent_dropout=0.2),
                 layers.Dense(1, activation='sigmoid')
             ])
@@ -104,8 +105,8 @@ class IMDBNetwork(object):
 
 
 def main():
-    net = IMDBNetwork(num_words=5000)
-    net.train(epochs=10)
+    net = IMDBNetwork(num_words=20000)
+    net.train(save=False, batch_size=32, epochs=15)
     net.model.summary()
     print(net.evaluate())
 
